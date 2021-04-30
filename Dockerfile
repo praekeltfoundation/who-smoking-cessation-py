@@ -7,4 +7,4 @@ COPY . ./
 RUN poetry config virtualenvs.in-project true \
     && poetry install --no-dev --no-interaction --no-ansi
 
-CMD [".venv/bin/sanic", "--host", "0.0.0.0", "app.main.app"]
+CMD [".venv/bin/sanic", "--host", "0.0.0.0", "who.main.app"]
