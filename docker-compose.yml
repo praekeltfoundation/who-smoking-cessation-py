@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    links:
+      - rabbitmq
+      - redis
+    environment:
+      - AMQP_URL=amqp://guest:guest@rabbitmq/
+      - REDIS_URL=redis://redis
+    ports:
+      - 8000:8000
+    restart: always
+  rabbitmq:
+    image: rabbitmq:3.8
+    restart: always
+  redis:
+    image: redis:6.0
+    restart: always
