@@ -130,9 +130,7 @@ async def test_worker_valid_answer(worker: Worker, redis: aioredis.Redis):
     await ans_queue.bind(worker.exchange, "whatsapp.answer")
     worker.answer_worker = "not none"
 
-    user = User(
-        addr="27820001002", state=StateData(name="state_age"), session_id="1"
-    )
+    user = User(addr="27820001002", state=StateData(name="state_age"), session_id="1")
     await redis.set("user.27820001002", user.to_json())
 
     await send_inbound_amqp_message(

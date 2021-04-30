@@ -49,7 +49,7 @@ class Application(BaseApplication):
                     "⬛⬜⬜⬜⬜",
                     "",
                     "How old are you?",
-                    ""
+                    "",
                 ]
             ),
             error="\n".join(
