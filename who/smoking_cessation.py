@@ -242,7 +242,7 @@ class Application(BaseApplication):
                     "throughout your quit journey.* 💪",
                     "",
                     "Type *NEXT* to move on to the next step in the Quit Challenge.",
-                    ""
+                    "",
                 ]
             ),
             error="\n".join(
