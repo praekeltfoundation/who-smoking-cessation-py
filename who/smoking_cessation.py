@@ -2,7 +2,7 @@ from typing import List
 
 from who.base_application import BaseApplication
 from who.models import Message
-from who.states import Choice, ChoiceState, EndState
+from who.states import Choice, ChoiceState, EndState, ErrorMessage, FreeText
 
 
 class Application(BaseApplication):
@@ -34,7 +34,7 @@ class Application(BaseApplication):
         async def next_state(choice: Choice):
             if choice.value not in ["25_35", "35_45", "35_45", "45_55", "55+"]:
                 return "state_result_ineligible"
-            return "state_end"
+            return "state_gender"
 
         return ChoiceState(
             self,
@@ -87,6 +87,174 @@ class Application(BaseApplication):
                 ]
             ),
             next=self.START_STATE,
+        )
+
+    async def state_gender(self):
+        return ChoiceState(
+            self,
+            question="\n".join(["⬛⬛⬜⬜⬜", "", "What gender do you identify as?", ""]),
+            error="\n".join(
+                [
+                    "⚠️ This service works best when you use the numbered options "
+                    "available",
+                    "",
+                    "Please confirm your gender or skip.",
+                ]
+            ),
+            choices=[
+                Choice("male", "Male"),
+                Choice("female", "Female"),
+                Choice("other", "Other"),
+                Choice("not_say", "Rather not say"),
+                Choice("skip", "Skip this question"),
+            ],
+            next="state_smoking_frequency",
+        )
+
+    async def state_smoking_frequency(self):
+        return ChoiceState(
+            self,
+            question="\n".join(["⬛⬛⬛⬜⬜", "", "How often do you use tobacco?", ""]),
+            error="\n".join(
+                [
+                    "⚠️ This service works best when you use the numbered options "
+                    "available",
+                    "",
+                    "Please confirm your gender or skip.",
+                ]
+            ),
+            choices=[
+                Choice("daily", "Daily"),
+                Choice("weekly", "Weekly"),
+                Choice("now_and_then", "Every now and then"),
+                Choice("socially", "Only socially"),
+                Choice("skip", "Skip this question"),
+            ],
+            next="state_tobacco_type",
+        )
+
+    async def state_tobacco_type(self):
+        return ChoiceState(
+            self,
+            question="\n".join(
+                ["⬛⬛⬛⬛⬜", "", "What type of tobacco products do you usually use?", ""]
+            ),
+            error="\n".join(
+                [
+                    "⚠️ This service works best when you use the numbered options "
+                    "available",
+                    "",
+                    "Please confirm your tobacco type or skip.",
+                ]
+            ),
+            choices=[
+                Choice(
+                    "smoked",
+                    "Smoked tobacco - _includes cigarettes, cigars, cigarillos, "
+                    "roll-your-own, shisha (also known as hookah or waterpipe), "
+                    "kreteks and bidis_",
+                ),
+                Choice(
+                    "smokeless",
+                    "Smokeless tobacco - _includes chewing tobacco, snuff, and snus_",
+                ),
+                Choice("heatead", "Heated tobacco products "),
+                Choice("multiple", "More than one type of tobacco product"),
+                Choice("other", "Other"),
+                Choice("skip", "Skip this question"),
+            ],
+            next="state_smoking_spend",
+        )
+
+    async def state_smoking_spend(self):
+        async def validate_amount(value):
+            try:
+                assert isinstance(value, str)
+                assert value.isdigit()
+            except AssertionError:
+                raise ErrorMessage("⚠️ Please enter a valid amount")
+
+        return FreeText(
+            self,
+            question="\n".join(
+                [
+                    "⬛⬛⬛⬛⬛⬛⬜",
+                    "",
+                    "How much do you spend on tobacco products weekly?",
+                    "_Only send the amount in numbers_",
+                    "",
+                    "Type *SKIP* to move on to the next step in the Quit Challenge.",
+                ]
+            ),
+            next="state_quit_reason",
+            check=validate_amount,
+        )
+
+    async def state_quit_reason(self):
+        # TODO: Add additional capture for "Other"
+        return ChoiceState(
+            self,
+            question="\n".join(
+                [
+                    "⬛⬛⬛⬛⬛",
+                    "",
+                    "Can you share one reason you're motivated to quit tobacco?",
+                    "",
+                    "_Select a number from the list below, or reply with *7* "
+                    "to type out your own reason_",
+                    "",
+                ]
+            ),
+            error="\n".join(
+                [
+                    "⚠️ This service works best when you use the numbered options "
+                    "available",
+                    "",
+                    "Please select a number from the list below, or reply with *7* "
+                    "to type out your own reason.",
+                ]
+            ),
+            choices=[
+                Choice(
+                    "covid_19",
+                    "🦠 to protect yourself from getting a severe case of COVID-19",
+                ),
+                Choice(
+                    "good_example",
+                    "👍 to set a good example for your family and friends",
+                ),
+                Choice("save_money", "💸 to save money"),
+                Choice("environment", "🌳 to protect the environment"),
+                Choice("health", "🫁 to maintain a healthier body and lifestyle"),
+                Choice("health_others", "👶 to reduce health risks of those around you"),
+                Choice("other", "Other "),
+                Choice("skip", "Skip"),
+            ],
+            next="state_quit_next",
+        )
+
+    async def state_quit_next(self):
+        return ChoiceState(
+            self,
+            question="\n".join(
+                [
+                    "*That's great! Try to keep this motivation in mind "
+                    "throughout your quit journey.* 💪",
+                    "",
+                    "Type *NEXT* to move on to the next step in the Quit Challenge.",
+                    ""
+                ]
+            ),
+            error="\n".join(
+                [
+                    "⚠️ This service works best when you use the numbered options "
+                    "available",
+                    "",
+                    "Please type 1 or NEXT.",
+                ]
+            ),
+            choices=[Choice("next", "Next")],
+            next="state_end",
         )
 
     async def state_end(self):
